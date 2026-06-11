@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  python-app:
+    build: ./python3
+    volumes:
+      - ./python3:/app
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: user
+      POSTGRES_DB: appdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres:/docker-entrypoint-initdb.d
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama-gemma3-4b/models:/root/.ollama/models

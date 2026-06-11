@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.env
+postgres/data/
+ollama-gemma3-4b/models/*.gguf
+

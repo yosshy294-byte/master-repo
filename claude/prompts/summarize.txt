@@ -1,0 +1,2 @@
+Summarize the following text in 10 bullet points:
+{{input}}
