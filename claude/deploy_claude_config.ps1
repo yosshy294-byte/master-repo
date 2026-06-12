@@ -3,7 +3,7 @@ param(
     [switch]$Offline
 )
 
-$GitHubUser = "yosshy294-byte"
+$GitHubUser = "YOUR_GITHUB_USERNAME"
 $GitHubRepo = "master-repo"
 $RemoteDir  = "claude"
 
