@@ -3,13 +3,9 @@ param(
     [switch]$Offline
 )
 
-# =====================================================================
-# 設定: 自分のGitHubアカウント名に書き換えること
-# =====================================================================
 $GitHubUser = "yosshy294-byte"
 $GitHubRepo = "master-repo"
 $RemoteDir  = "claude"
-# =====================================================================
 
 $claudeDir = "$env:USERPROFILE\.claude"
 
@@ -30,7 +26,6 @@ function Get-GitHubRawFile {
     )
 
     $url = "https://raw.githubusercontent.com/$User/$Repo/$BranchName/$RemotePath"
-
     $headers = @{}
     if ($env:GITHUB_PAT) {
         $headers["Authorization"] = "Bearer $env:GITHUB_PAT"
@@ -46,9 +41,8 @@ function Get-GitHubRawFile {
             Write-Warning "URL: $url"
         } elseif ($status -eq 401 -or $status -eq 403) {
             Write-Warning "[$RemotePath] ${status}: GITHUB_PAT が必要です"
-            Write-Warning "設定例: $env:GITHUB_PAT = 'ghp_xxxxxxxxxxxx'"
         } else {
-            Write-Warning "[$RemotePath] エラー: $_"
+            Write-Warning "[$RemotePath] エラーが発生しました"
         }
         return $null
     }
@@ -58,8 +52,6 @@ Write-Host ""
 
 if ($Offline) {
     Write-Host "オフラインモード: ローカルファイルを使用します。"
-    Write-Host ""
-
     $missing = $false
     foreach ($fileName in $fileMap.Keys) {
         $src = Join-Path $PSScriptRoot $fileName
@@ -72,16 +64,14 @@ if ($Offline) {
         Write-Host "スクリプトと同じフォルダに各MDファイルを置いてください。"
         exit 1
     }
-
     foreach ($fileName in $fileMap.Keys) {
         $dest = Join-Path $claudeDir $fileMap[$fileName]
         Copy-Item (Join-Path $PSScriptRoot $fileName) $dest -Force
         Write-Host "  [LOCAL] $fileName -> $dest"
     }
-
 } else {
     if ($GitHubUser -eq "YOUR_GITHUB_USERNAME") {
-        Write-Host "エラー: スクリプト冒頭の GitHubUser を設定してください。"
+        Write-Host "エラー: スクリプト冒頭の GitHubUser を実際のアカウント名に書き換えてください。"
         exit 1
     }
 
@@ -89,13 +79,9 @@ if ($Offline) {
     Write-Host "  リポジトリ: https://github.com/$GitHubUser/$GitHubRepo"
     Write-Host "  フォルダ  : $RemoteDir/"
     Write-Host "  ブランチ  : $Branch"
-    if ($env:GITHUB_PAT) {
-        Write-Host "  認証      : GITHUB_PAT 使用"
-    }
     Write-Host ""
 
     $allSuccess = $true
-
     foreach ($fileName in $fileMap.Keys) {
         $remotePath = "$RemoteDir/$fileName"
         $content = Get-GitHubRawFile -User $GitHubUser -Repo $GitHubRepo -BranchName $Branch -RemotePath $remotePath
@@ -109,28 +95,23 @@ if ($Offline) {
     }
 
     if (-not $allSuccess) {
-        Write-Host ""
-        Write-Host "一部ファイルの取得に失敗しました。"
+        Write-Host "一部ファイルの取得に失敗しました。上記の警告を確認してください。"
         exit 1
     }
 }
 
-# Surface 用アクティブ設定を CLAUDE.md として配置
 $surfaceSrc = Join-Path $claudeDir "CLAUDE.surface.md"
 $activeDest = Join-Path $claudeDir "CLAUDE.md"
 Copy-Item $surfaceSrc $activeDest -Force
 
 Write-Host ""
 Write-Host "完了:"
-Write-Host "  $claudeDir\CLAUDE.md         (Surface用 / Claude Codeが読込)"
-Write-Host "  $claudeDir\CLAUDE.surface.md (Surface設定 参照用)"
-Write-Host "  $claudeDir\CLAUDE.mac.md     (Mac設定 参照用)"
-Write-Host "  $claudeDir\CLAUDE.common.md  (共通設定 参照用)"
+Write-Host "  CLAUDE.md         : Claude Code が読み込む設定"
+Write-Host "  CLAUDE.surface.md : Surface設定"
+Write-Host "  CLAUDE.mac.md     : Mac設定"
+Write-Host "  CLAUDE.common.md  : 共通設定"
+Write-Host "  配置先: $claudeDir"
 Write-Host ""
-Write-Host "確認コマンド:"
+Write-Host "配置確認:"
 Write-Host "  Get-Content $claudeDir\CLAUDE.md | Select-Object -First 5"
 Write-Host ""
-
-# プライベートリポジトリの場合:
-# $env:GITHUB_PAT = "ghp_xxxxxxxxxxxx"
-# .\deploy_claude_config.ps1
