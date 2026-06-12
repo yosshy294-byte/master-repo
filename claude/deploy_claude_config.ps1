@@ -65,18 +65,14 @@ function Get-GitHubRawFile {
         return $response.Content
     } catch {
         $status = $_.Exception.Response.StatusCode.value__
-        switch ($status) {
-            404 {
-                Write-Warning "[$RemotePath] 取得失敗 (404): パス・ブランチ名を確認してください"
-                Write-Warning "  URL: $url"
-            }
-            { $_ -in 401, 403 } {
-                Write-Warning "[$RemotePath] 取得失敗 ($status): プライベートリポジトリは GITHUB_PAT が必要です"
-                Write-Warning "  設定例: `$env:GITHUB_PAT = 'ghp_xxxxxxxxxxxx'"
-            }
-            default {
-                Write-Warning "[$RemotePath] 取得失敗: $_"
-            }
+        if ($status -eq 404) {
+            Write-Warning "[$RemotePath] 取得失敗 (404): パス・ブランチ名を確認してください"
+            Write-Warning "  URL: $url"
+        } elseif ($status -eq 401 -or $status -eq 403) {
+            Write-Warning "[$RemotePath] 取得失敗 ($status): プライベートリポジトリは GITHUB_PAT が必要です"
+            Write-Warning "  設定例: `$env:GITHUB_PAT = 'ghp_xxxxxxxxxxxx'"
+        } else {
+            Write-Warning "[$RemotePath] 取得失敗 (${status}): $_"
         }
         return $null
     }
